@@ -87,7 +87,7 @@
   <div class="card-header">
     <h1>Attendance</h1>
     <p id="headerDate"></p>
-    <em>Valid only from 6.00am to 8.05am daily</em>
+    <em>This submission is valid only from 6.00am to 8.05am daily</em>
   </div>
   <div class="card-body">
     <div id="loadingState" class="loading">
@@ -99,7 +99,7 @@
       <div class="field">
         <label>Name/ Employee ID</label>
         <div class="search-wrap">
-          <input type="text" id="searchInput" placeholder="Select or type name/ employee ID" autocomplete="off" />
+          <input type="text" id="searchInput" placeholder="Select/ type name or ID..." autocomplete="off" />
           <div class="dropdown" id="dropdown"></div>
         </div>
         <div class="selected-display" id="selectedDisplay">
@@ -125,7 +125,7 @@
     <div id="errorState" style="display:none; text-align:center; padding:10px 0;">
       <div style="font-size:32px; margin-bottom:12px;">⚠️</div>
       <div style="font-weight:600; color:var(--error); margin-bottom:6px;" id="errorTitle">Session Expired</div>
-      <div style="font-size:13px; color:var(--text-soft);" id="errorMsg">Please retap the NFC tag to continue.</div>
+      <div style="font-size:13px; color:var(--text-soft);" id="errorMsg">Retap the NFC tag to continue.</div>
     </div>
   </div>
 </div>
@@ -161,10 +161,10 @@
           const base = window.location.href.split("?")[0];
           window.location.href = base + "?token=" + data.token;
         } else {
-          showError("Session error", "Unable to load session. Retap the NFC tag.");
+          showError("Session Error", "Unable to load session. Retap the NFC tag.");
         }
       } catch(e) {
-        showError("Connection error", "Unable to connect. Try again.");
+        showError("Connection Error", "Unable to connect. Try again.");
       }
       return;
     }
@@ -178,7 +178,7 @@
       });
       const data = await res.json();
       if (data.tokenValid === false) {
-        showError("Session expired", "Retap the NFC tag to get a fresh link.");
+        showError("Session Expired", "Retap the NFC tag to get a fresh link.");
         return;
       }
       employees = data.employees.body || [];
@@ -255,7 +255,7 @@
     }
     const btn = document.getElementById("submitBtn");
     btn.disabled = true;
-    btn.textContent = "Submitting";
+    btn.textContent = "Submitting...";
     try {
       const res = await fetch(CONFIG.submitURL, {
         method: "POST",
@@ -271,10 +271,10 @@
       if (data.result === "duplicate") {
         showBanner("Already submitted for this session.", "warning");
       } else if (data.result === "expired") {
-        showError("Session expired", "Retap the NFC tag to get a fresh link.");
+        showError("Session Expired", "Retap the NFC tag to get a fresh link.");
         return;
       } else if (data.result === "success") {
-        showBanner("Recorded." + selectedEmployee.Name + ".", "success");
+        showBanner("Recorded! Thank you, " + selectedEmployee.Name + ".", "success");
         clearSelection();
         document.getElementById("otToggle").checked = false;
         updateOTLabel();
@@ -292,4 +292,3 @@
 </script>
 </body>
 </html>
-
