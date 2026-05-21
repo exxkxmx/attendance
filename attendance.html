@@ -92,14 +92,14 @@
   <div class="card-body">
     <div id="loadingState" class="loading">
       <div class="spinner"></div>
-      Loading...
+      Loading~
     </div>
     <div id="formState" style="display:none; flex-direction:column; gap:20px;">
       <div id="banner" class="banner"></div>
       <div class="field">
         <label>Name/ Employee ID</label>
         <div class="search-wrap">
-          <input type="text" id="searchInput" placeholder="Select/ type name or ID..." autocomplete="off" />
+          <input type="text" id="searchInput" placeholder="Select/ type name or ID~" autocomplete="off" />
           <div class="dropdown" id="dropdown"></div>
         </div>
         <div class="selected-display" id="selectedDisplay">
@@ -255,7 +255,7 @@
     }
     const btn = document.getElementById("submitBtn");
     btn.disabled = true;
-    btn.textContent = "Submitting...";
+    btn.textContent = "Submitting~";
     try {
       const res = await fetch(CONFIG.submitURL, {
         method: "POST",
