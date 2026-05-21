@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Attendance</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+  :root {
+    --bg: #F4F3F0; --card: #FFFFFF; --text: #1A1A1A; --text-soft: #6B6B6B;
+    --accent: #1D4ED8; --accent-light: #EEF2FF;
+    --success: #15803D; --success-light: #F0FDF4;
+    --warning: #B45309; --warning-light: #FFFBEB;
+    --error: #B91C1C; --error-light: #FEF2F2;
+    --border: #E5E4E0; --radius: 12px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+  .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 420px; overflow: hidden; }
+  .card-header { background: var(--accent); padding: 24px 28px; color: white; }
+  .card-header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+  .card-header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+  .card-body { padding: 28px; display: flex; flex-direction: column; gap: 20px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 13px; font-weight: 500; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+  .search-wrap { position: relative; }
+  input[type="text"] {
+    width: 100%; padding: 12px 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--text); outline: none; transition: border-color .15s;
+  }
+  input[type="text"]:focus { border-color: var(--accent); background: white; }
+  .dropdown {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: white; border: 1.5px solid var(--border); border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 220px; overflow-y: auto; z-index: 100; display: none;
+  }
+  .dropdown.open { display: block; }
+  .dropdown-item { padding: 11px 14px; font-size: 14px; color: var(--text); cursor: pointer; border-bottom: 1px solid var(--border); transition: background .1s; }
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item:hover { background: var(--accent-light); color: var(--accent); }
+  .dropdown-item .emp-id { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-soft); margin-left: 6px; }
+  .dropdown-empty { padding: 12px 14px; font-size: 13px; color: var(--text-soft); text-align: center; }
+  .selected-display {
+    padding: 10px 14px; background: var(--accent-light); border-radius: 8px;
+    font-size: 14px; color: var(--accent); font-weight: 500;
+    display: none; align-items: center; justify-content: space-between;
+  }
+  .selected-display.show { display: flex; }
+  .clear-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 4px; opacity: 0.6; }
+  .clear-btn:hover { opacity: 1; }
+  .ot-wrap { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: var(--bg); border-radius: 8px; border: 1.5px solid var(--border); }
+  .ot-label { font-size: 14px; color: var(--text); font-weight: 500; }
+  .ot-sublabel { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+  .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-track { position: absolute; inset: 0; background: var(--border); border-radius: 24px; cursor: pointer; transition: background .2s; }
+  .toggle input:checked + .toggle-track { background: var(--accent); }
+  .toggle-track::after { content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: transform .2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+  .toggle input:checked + .toggle-track::after { transform: translateX(20px); }
+  .submit-btn { width: 100%; padding: 14px; background: var(--accent); color: white; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: opacity .15s, transform .1s; letter-spacing: 0.01em; }
+  .submit-btn:hover { opacity: 0.92; }
+  .submit-btn:active { transform: scale(0.99); }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .banner { padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; line-height: 1.5; display: none; }
+  .banner.show { display: block; }
+  .banner.success { background: var(--success-light); color: var(--success); }
+  .banner.warning { background: var(--warning-light); color: var(--warning); }
+  .banner.error { background: var(--error-light); color: var(--error); }
+  .loading { text-align: center; padding: 20px; color: var(--text-soft); font-size: 13px; }
+  .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; margin: 0 auto 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-header">
+    <h1>Daily Attendance</h1>
+    <p id="headerDate"></p>
+  </div>
+  <div class="card-body">
+    <div id="loadingState" class="loading">
+      <div class="spinner"></div>
+      Loading...
+    </div>
+    <div id="formState" style="display:none; flex-direction:column; gap:20px;">
+      <div id="banner" class="banner"></div>
+      <div class="field">
+        <label>Your Name / ID</label>
+        <div class="search-wrap">
+          <input type="text" id="searchInput" placeholder="Type name or ID..." autocomplete="off" />
+          <div class="dropdown" id="dropdown"></div>
+        </div>
+        <div class="selected-display" id="selectedDisplay">
+          <span id="selectedText"></span>
+          <button class="clear-btn" onclick="clearSelection()">×</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>OT Availability</label>
+        <div class="ot-wrap">
+          <div>
+            <div class="ot-label">Available for OT today?</div>
+            <div class="ot-sublabel" id="otSubLabel">No</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="otToggle" onchange="updateOTLabel()" />
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+      </div>
+      <button class="submit-btn" id="submitBtn" onclick="submitAttendance()">Submit</button>
+    </div>
+    <div id="errorState" style="display:none; text-align:center; padding:10px 0;">
+      <div style="font-size:32px; margin-bottom:12px;">⚠️</div>
+      <div style="font-weight:600; color:var(--error); margin-bottom:6px;" id="errorTitle">Session Expired</div>
+      <div style="font-size:13px; color:var(--text-soft);" id="errorMsg">Please retap the NFC tag to continue.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ─── PASTE YOUR FLOW URLS HERE ────────────────────────────────────
+  const CONFIG = {
+    getEmployeesURL: "https://default37e82b15b09843dd8b4737e61991e2.fe.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/520dfcd7dd30449eab3485a7afae623b/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-t3mh7tLHtIAW_4CfkPNSNK3p4PABv8IQCS70MF9R5w",
+    submitURL:       "https://default37e82b15b09843dd8b4737e61991e2.fe.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/4d13e6c841fc408ca67ae88ffbc2248b/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=GL2SI6hWq04oBsQm3qjuX63IBqrC7lFVsNZ2jtkpn-s"
+  };
+  // ─────────────────────────────────────────────────────────────────
+
+  let employees = [];
+  let selectedEmployee = null;
+  let urlToken = new URLSearchParams(window.location.search).get("token");
+
+  // Header date (SGT)
+  const sgtNow = new Date(Date.now() + 8 * 3600 * 1000);
+  document.getElementById("headerDate").textContent =
+    sgtNow.toLocaleDateString("en-SG", { weekday:"long", day:"2-digit", month:"long", year:"numeric" });
+
+  async function init() {
+    // No token — NFC tap, fetch current token and redirect
+    if (!urlToken) {
+      try {
+        const res = await fetch(CONFIG.getEmployeesURL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ getToken: true })
+        });
+        const data = await res.json();
+        if (data.token) {
+          const base = window.location.href.split("?")[0];
+          window.location.href = base + "?token=" + data.token;
+        } else {
+          showError("Session Error", "Unable to load session. Please retap the NFC tag.");
+        }
+      } catch(e) {
+        showError("Connection Error", "Unable to connect. Please try again.");
+      }
+      return;
+    }
+
+    // Token present — validate and load employees
+    try {
+      const res = await fetch(CONFIG.getEmployeesURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: urlToken })
+      });
+      const data = await res.json();
+      if (data.tokenValid === false) {
+        showError("Session Expired", "Please retap the NFC tag to get a fresh link.");
+        return;
+      }
+      employees = data.employees.body || [];
+      document.getElementById("loadingState").style.display = "none";
+      document.getElementById("formState").style.display = "flex";
+    } catch(e) {
+      showError("Connection Error", "Unable to connect. Please try again.");
+    }
+  }
+
+  function showError(title, msg) {
+    document.getElementById("loadingState").style.display = "none";
+    document.getElementById("errorTitle").textContent = title;
+    document.getElementById("errorMsg").textContent = msg;
+    document.getElementById("errorState").style.display = "block";
+  }
+
+  function showBanner(msg, type) {
+    const b = document.getElementById("banner");
+    b.textContent = msg;
+    b.className = "banner show " + type;
+    setTimeout(() => b.classList.remove("show"), 5000);
+  }
+
+  function updateOTLabel() {
+    document.getElementById("otSubLabel").textContent =
+      document.getElementById("otToggle").checked ? "Yes" : "No";
+  }
+
+  document.getElementById("searchInput").addEventListener("input", function() {
+    const q = this.value.trim().toLowerCase();
+    const dd = document.getElementById("dropdown");
+    if (!q) { dd.classList.remove("open"); return; }
+    const matches = employees.filter(e =>
+      e.Name.toLowerCase().includes(q) || e.ID.toLowerCase().includes(q)
+    );
+    if (matches.length === 0) {
+      dd.innerHTML = '<div class="dropdown-empty">No match found</div>';
+    } else {
+      dd.innerHTML = matches.map(e =>
+        `<div class="dropdown-item" onclick="selectEmployee('${e.ID}','${e.Name.replace(/'/g,"\\'")}')">
+          ${e.Name}<span class="emp-id">${e.ID}</span>
+        </div>`
+      ).join("");
+    }
+    dd.classList.add("open");
+  });
+
+  document.addEventListener("click", function(e) {
+    if (!e.target.closest(".search-wrap")) {
+      document.getElementById("dropdown").classList.remove("open");
+    }
+  });
+
+  function selectEmployee(id, name) {
+    selectedEmployee = { ID: id, Name: name };
+    document.getElementById("searchInput").style.display = "none";
+    document.getElementById("dropdown").classList.remove("open");
+    document.getElementById("selectedText").textContent = name + " — " + id;
+    document.getElementById("selectedDisplay").classList.add("show");
+  }
+
+  function clearSelection() {
+    selectedEmployee = null;
+    document.getElementById("searchInput").style.display = "block";
+    document.getElementById("searchInput").value = "";
+    document.getElementById("selectedDisplay").classList.remove("show");
+  }
+
+  async function submitAttendance() {
+    if (!selectedEmployee) {
+      showBanner("Please select your name.", "warning");
+      return;
+    }
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.textContent = "Submitting...";
+    try {
+      const res = await fetch(CONFIG.submitURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: urlToken,
+          empID: selectedEmployee.ID,
+          empName: selectedEmployee.Name,
+          ot: document.getElementById("otToggle").checked ? "Yes" : "No"
+        })
+      });
+      const data = await res.json();
+      if (data.result === "duplicate") {
+        showBanner("Already submitted for this session.", "warning");
+      } else if (data.result === "expired") {
+        showError("Session Expired", "Please retap the NFC tag to get a fresh link.");
+        return;
+      } else if (data.result === "success") {
+        showBanner("Recorded! Thank you, " + selectedEmployee.Name + ".", "success");
+        clearSelection();
+        document.getElementById("otToggle").checked = false;
+        updateOTLabel();
+      } else {
+        showBanner("Something went wrong. Please try again.", "error");
+      }
+    } catch(e) {
+      showBanner("Connection error. Please try again.", "error");
+    }
+    btn.disabled = false;
+    btn.textContent = "Submit";
+  }
+
+  init();
+</script>
+</body>
+</html>
