@@ -8,7 +8,7 @@
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
   :root {
     --bg: #F4F3F0; --card: #FFFFFF; --text: #1A1A1A; --text-soft: #6B6B6B;
-    --accent: #1D4ED8; --accent-light: #EEF2FF;
+    --accent: #1e3a8a; --accent-light: #EEF2FF;
     --success: #15803D; --success-light: #F0FDF4;
     --warning: #B45309; --warning-light: #FFFBEB;
     --error: #B91C1C; --error-light: #FEF2F2;
@@ -28,6 +28,7 @@
   .card-header { background: var(--accent); padding: 24px 28px; color: white; }
   .card-header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
   .card-header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+  .card-header em { font-size: 12px; opacity: 0.75; margin-top: 6px; display: block; font-style: italic; }
   .card-body { padding: 28px; display: flex; flex-direction: column; gap: 20px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   label { font-size: 13px; font-weight: 500; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.04em; }
@@ -84,8 +85,9 @@
 <body>
 <div class="card">
   <div class="card-header">
-    <h1>Daily Attendance</h1>
+    <h1>Attendance</h1>
     <p id="headerDate"></p>
+    <em>Valid only from 6.00am to 8.05am daily</em>
   </div>
   <div class="card-body">
     <div id="loadingState" class="loading">
@@ -95,9 +97,9 @@
     <div id="formState" style="display:none; flex-direction:column; gap:20px;">
       <div id="banner" class="banner"></div>
       <div class="field">
-        <label>Your Name / ID</label>
+        <label>Name/ Employee ID</label>
         <div class="search-wrap">
-          <input type="text" id="searchInput" placeholder="Type name or ID..." autocomplete="off" />
+          <input type="text" id="searchInput" placeholder="Select or type name/ employee ID" autocomplete="off" />
           <div class="dropdown" id="dropdown"></div>
         </div>
         <div class="selected-display" id="selectedDisplay">
@@ -159,10 +161,10 @@
           const base = window.location.href.split("?")[0];
           window.location.href = base + "?token=" + data.token;
         } else {
-          showError("Session Error", "Unable to load session. Please retap the NFC tag.");
+          showError("Session error", "Unable to load session. Retap the NFC tag.");
         }
       } catch(e) {
-        showError("Connection Error", "Unable to connect. Please try again.");
+        showError("Connection error", "Unable to connect. Try again.");
       }
       return;
     }
@@ -176,14 +178,14 @@
       });
       const data = await res.json();
       if (data.tokenValid === false) {
-        showError("Session Expired", "Please retap the NFC tag to get a fresh link.");
+        showError("Session expired", "Retap the NFC tag to get a fresh link.");
         return;
       }
       employees = data.employees.body || [];
       document.getElementById("loadingState").style.display = "none";
       document.getElementById("formState").style.display = "flex";
     } catch(e) {
-      showError("Connection Error", "Unable to connect. Please try again.");
+      showError("Connection Error", "Unable to connect. Try again.");
     }
   }
 
@@ -248,12 +250,12 @@
 
   async function submitAttendance() {
     if (!selectedEmployee) {
-      showBanner("Please select your name.", "warning");
+      showBanner("Select your name.", "warning");
       return;
     }
     const btn = document.getElementById("submitBtn");
     btn.disabled = true;
-    btn.textContent = "Submitting...";
+    btn.textContent = "Submitting";
     try {
       const res = await fetch(CONFIG.submitURL, {
         method: "POST",
@@ -269,18 +271,18 @@
       if (data.result === "duplicate") {
         showBanner("Already submitted for this session.", "warning");
       } else if (data.result === "expired") {
-        showError("Session Expired", "Please retap the NFC tag to get a fresh link.");
+        showError("Session expired", "Retap the NFC tag to get a fresh link.");
         return;
       } else if (data.result === "success") {
-        showBanner("Recorded! Thank you, " + selectedEmployee.Name + ".", "success");
+        showBanner("Recorded." + selectedEmployee.Name + ".", "success");
         clearSelection();
         document.getElementById("otToggle").checked = false;
         updateOTLabel();
       } else {
-        showBanner("Something went wrong. Please try again.", "error");
+        showBanner("Something went wrong. Try again.", "error");
       }
     } catch(e) {
-      showBanner("Connection error. Please try again.", "error");
+      showBanner("Connection error. Try again.", "error");
     }
     btn.disabled = false;
     btn.textContent = "Submit";
@@ -290,3 +292,4 @@
 </script>
 </body>
 </html>
+
